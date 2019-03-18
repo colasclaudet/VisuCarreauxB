@@ -27,9 +27,9 @@ myOpenGLWidget::myOpenGLWidget(QWidget *parent) :
 						// cf https://www.khronos.org/opengl/wiki/Multisampling et https://stackoverflow.com/a/14474260
 	setFormat(sf);
 
-	setEnabled(true);  // événements clavier et souris
+    setEnabled(true);                 // événements clavier et souris
 	setFocusPolicy(Qt::StrongFocus); // accepte focus
-	setFocus();                      // donne le focus
+    setFocus();                     // donne le focus
 
 	m_timer = new QTimer(this);
 	m_timer->setInterval(50);  // msec
@@ -37,8 +37,8 @@ myOpenGLWidget::myOpenGLWidget(QWidget *parent) :
 	connect (m_timer, SIGNAL(timeout()), this, SLOT(onTimeout()));
 }
 
-Point  OMT0[4];
-Point  OMT1[4];
+static Point  OMT0[4];
+static Point  OMT1[4];
 //-----------
 // for(int j=1;j<n;j++)
     // for(int i=0;i<n-j,i++)
@@ -53,31 +53,29 @@ float * casteljau()
     coord[1] = -2.0f;
     coord[2] = 0.0f;
 
-    Point *P0=new Point();
-    P0->set(coord);
+    Point P0;
+    P0.set(coord);
 
     coord[0] = -1.0;
     coord[1] = 1.0f;
     coord[2] = 0.0f;
 
-    Point *P1=new Point();
-    P1->set(coord);
+    Point P1;
+    P1.set(coord);
 
     coord[0] = 1.0;
     coord[1] = 1.0f;
     coord[2] = 0.0f;
 
-    Point *P2=new Point();
-    P2->set(coord);
+    Point P2;
+    P2.set(coord);
 
     coord[0] = 2.0;
     coord[1] = -2.0f;
     coord[2] = 0.0f;
 
-    Point *P3=new Point();
-    P3->set(coord);
-
-
+    Point P3;
+    P3.set(coord);
 
     Point  OM0[4];
     Point  OM1[4];
@@ -85,17 +83,17 @@ float * casteljau()
 
     for(int t=0;t<4;t++)
     {
-        OM0[t].setX((1-t)*P0->getX()+t*P1->getX());
-        OM1[t].setX((1-t)*P1->getX()+t*P2->getX());
-        OM2[t].setX((1-t)*P2->getX()+t*P3->getX());
+        OM0[t].setX((1-t)*P0.getX()+t*P1.getX());
+        OM1[t].setX((1-t)*P1.getX()+t*P2.getX());
+        OM2[t].setX((1-t)*P2.getX()+t*P3.getX());
 
-        OM0[t].setY((1-t)*P0->getY()+t*P1->getY());
-        OM1[t].setY((1-t)*P1->getY()+t*P2->getY());
-        OM2[t].setY((1-t)*P2->getY()+t*P3->getY());
+        OM0[t].setY((1-t)*P0.getY()+t*P1.getY());
+        OM1[t].setY((1-t)*P1.getY()+t*P2.getY());
+        OM2[t].setY((1-t)*P2.getY()+t*P3.getY());
 
-        OM0[t].setZ((1-t)*P0->getZ()+t*P1->getZ());
-        OM1[t].setZ((1-t)*P1->getZ()+t*P2->getZ());
-        OM2[t].setZ((1-t)*P2->getZ()+t*P3->getZ());
+        OM0[t].setZ((1-t)*P0.getZ()+t*P1.getZ());
+        OM1[t].setZ((1-t)*P1.getZ()+t*P2.getZ());
+        OM2[t].setZ((1-t)*P2.getZ()+t*P3.getZ());
         //
         /*
         OM0[t].y=(1-t)*P0->y+t*P1->y;
@@ -107,7 +105,7 @@ float * casteljau()
         OM2[t].z=(1-t)*P2->z+t*P3->z;
         */
     }
-    float vertice[6*4];
+    float * vertice = new float[6*4];
     for(int t=0;t<4;t++)
     {
         for(int i=0;i<4;i++)
@@ -122,7 +120,6 @@ float * casteljau()
             OMT1[t].setZ((1-t)*OM1[i].getZ()+t*OM2[i].getZ());
             // cout<<"test1 : "<<OMT1[t]<<endl;
         }
-
     }
     int j=0;
     int i=0;
@@ -150,7 +147,7 @@ float * casteljau()
     }
     for(int i=0;i<4*6;i++)
         {
-            qDebug()<<OMT0[i].getX()<<endl;
+            //qDebug()<<OMT0[i].getX()<<endl;
             qDebug()<<vertice[i];
         }
     return vertice;
@@ -195,14 +192,14 @@ void myOpenGLWidget::initializeGL()
 
 void myOpenGLWidget::doProjection()
 {
-	//m_mod.setToIdentity();
-	//modelMatrix.ortho( -aratio, aratio, -1.0f, 1.0f, -1.0f, 1.0f );
+    //m_mod.setToIdentity();
+    //modelMatrix.ortho( -aratio, aratio, -1.0f, 1.0f, -1.0f, 1.0f );
 }
 
 
 void myOpenGLWidget::makeGLObjects()
 {
-    //float * cas = casteljau();
+    float * cas = casteljau();
     Segments tab;
 	//1 Nos objets géométriques
 	Point A, B;
@@ -358,6 +355,18 @@ void myOpenGLWidget::makeGLObjects()
         delete [] colors;
     }
 
+    for(int l = 0; l < 6*4; l++)
+    {
+
+        for (int i = 0; i < 2; ++i) { //2 sommets
+            // coordonnées sommets
+            for (int j = 0; j < 3; j++) //3 coords par sommet
+                vertData.append(cas[i*3+j]);
+            // couleurs sommets
+            for (int j = 0; j < 3; j++) //1 RGB par sommet
+                vertData.append(cas[i*3+j]);
+        }
+    }
     qDebug()<<vertData.size();
 	m_vbo.create();
 	m_vbo.bind();
